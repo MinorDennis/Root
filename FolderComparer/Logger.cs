@@ -27,7 +27,7 @@
             StringBuilder sb = new StringBuilder(str.Length + 2);
             sb.AppendLine(str);
 
-            await this.fileWritter.Write(Encoding.UTF8.GetBytes(sb.ToString()));
+            await this.fileWritter.WriteAsync(Encoding.UTF8.GetBytes(sb.ToString()));
         }
 
         public void Dispose()

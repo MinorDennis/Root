@@ -59,7 +59,12 @@
             }
         }
 
-        public async Task Write(byte[] bytesToWrite)
+        public void Write(byte[] bytesToWrite)
+        {
+            this.WriteAsync(bytesToWrite).Wait();
+        }
+
+        public async Task WriteAsync(byte[] bytesToWrite)
         {
             if (bytesToWrite == null || bytesToWrite.Length == 0)
             {
@@ -146,13 +151,19 @@
             }
         }
 
-        public static void ReleaseSemaphore(SemaphoreSlim semaphore, ManualResetEventSlim manualResetEvent, int semaphoreMaxValue)
+        public void Flush()
         {
-            int semaphoreValue = semaphore.Release();
-            if (semaphoreValue == semaphoreMaxValue - 1)
+            this.FlushAsync().Wait();
+        }
+
+        public async Task FlushAsync()
+        {
+            if (this.Disposed)
             {
-                manualResetEvent.Set();
+                throw new ObjectDisposedException(this.id, "Cannot write to an ConcurrentFileWritter which is disposing or has disposed.");
             }
+
+            await this.fileStream.FlushAsync();
         }
 
         public void Dispose()
@@ -193,6 +204,15 @@
                         // ignore all errors when disposing
                     }
                 }
+            }
+        }
+
+        private static void ReleaseSemaphore(SemaphoreSlim semaphore, ManualResetEventSlim manualResetEvent, int semaphoreMaxValue)
+        {
+            int semaphoreValue = semaphore.Release();
+            if (semaphoreValue == semaphoreMaxValue - 1)
+            {
+                manualResetEvent.Set();
             }
         }
 
