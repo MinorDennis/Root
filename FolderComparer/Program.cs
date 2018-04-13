@@ -17,12 +17,13 @@
             string sourceFolder;
             string targetFolder;
             string logFolder;
+            string fromFile;
             string searchPattern;
             bool debug;
 
-            if (!ParseArgs(args, out sourceFolder, out targetFolder, out logFolder, out searchPattern, out debug))
+            if (!ParseArgs(args, out sourceFolder, out targetFolder, out logFolder, out searchPattern, out fromFile, out debug))
             {
-                Console.WriteLine("FolderCompare -s <SourceFolder> -t <TargetFolder> -logFolder <LogFolder> [-searchPattern <SearchPattern>] [-d]");
+                Console.WriteLine("FolderCompare -s <SourceFolder> -t <TargetFolder> -logFolder <LogFolder> [-searchPattern <SearchPattern>] [-from <FromFile>] [-d]");
                 return;
             }
 
@@ -56,7 +57,7 @@
                 }
             };
 
-            var folderComparer = new FolderComparer(sourceFolder, targetFolder, searchPattern, logFolder, new FolderComparerConfig());
+            var folderComparer = new FolderComparer(sourceFolder, targetFolder, searchPattern, fromFile, logFolder, new FolderComparerConfig());
 
             cancellationTokenSource = new CancellationTokenSource();
 
@@ -70,12 +71,13 @@
             }
         }        
 
-        private static bool ParseArgs(string[] args, out string sourceFolder, out string targetFolder, out string logFolder, out string searchPattern, out bool debug)
+        private static bool ParseArgs(string[] args, out string sourceFolder, out string targetFolder, out string logFolder, out string searchPattern, out string fromFile, out bool debug)
         {
             sourceFolder = string.Empty;
             targetFolder = string.Empty;
             logFolder = null;
             searchPattern = "*.*";
+            fromFile = null;
             debug = false;
             for(int i = 0; i< args.Length; i++)
             {
@@ -114,6 +116,15 @@
                     }
 
                     searchPattern = args[++i];
+                }
+                else if (string.Equals("-from", args[i], StringComparison.OrdinalIgnoreCase))
+                {
+                    if (i == args.Length - 1)
+                    {
+                        return false;
+                    }
+
+                    fromFile = args[++i];
                 }
                 else if (string.Equals("-d", args[i], StringComparison.OrdinalIgnoreCase))
                 {

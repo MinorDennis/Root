@@ -163,7 +163,23 @@
                 throw new ObjectDisposedException(this.id, "Cannot write to an ConcurrentFileWritter which is disposing or has disposed.");
             }
 
-            await this.fileStream.FlushAsync();
+            try
+            {
+                await this.flushSemaphore.WaitAsync();
+                try
+                {
+                    await this.fileStream.FlushAsync();
+                }
+                finally
+                {
+
+                }
+                this.flushSemaphore.Release();
+            }
+            catch
+            { 
+                // Ignore exception incase flushSemaphore or fileStream is disposed.
+            }
         }
 
         public void Dispose()

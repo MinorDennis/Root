@@ -13,14 +13,16 @@
         private readonly string sourceFolder;
         private readonly string targetFolder;
         private readonly string fileSearchPattern;
+        private readonly string fromFile;
         private readonly string logFolder;
         private readonly IFolderComparerConfig config;
         
-        public FolderComparer(string sourceFolder, string targetFolder, string fileSearchPattern, string logFolder, IFolderComparerConfig config)
+        public FolderComparer(string sourceFolder, string targetFolder, string fileSearchPattern, string fromFile, string logFolder, IFolderComparerConfig config)
         {
             this.sourceFolder = sourceFolder;
             this.targetFolder = targetFolder;
             this.fileSearchPattern = fileSearchPattern;
+            this.fromFile = fromFile;
             this.logFolder = logFolder;
             this.config = config;
         }
@@ -50,11 +52,22 @@
                         {
                             using (ManualResetEventSlim manualResetEvent = new ManualResetEventSlim(false))
                             {
+                                bool foundFromFile = false;
                                 foreach (var sourceFileTmp in Directory.EnumerateFiles(this.sourceFolder, this.fileSearchPattern, SearchOption.AllDirectories))
                                 {
                                     if (cancellationTokenSource.Token.IsCancellationRequested)
                                     {
                                         break;
+                                    }
+
+                                    if(!foundFromFile && (string.IsNullOrEmpty(this.fromFile) || string.Equals(sourceFileTmp, this.fromFile, StringComparison.OrdinalIgnoreCase)))
+                                    {
+                                        foundFromFile = true;
+                                    }
+
+                                    if(!foundFromFile)
+                                    {
+                                        continue;
                                     }
 
                                     await semaphoreSlim.WaitAsync();
